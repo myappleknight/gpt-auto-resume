@@ -1,0 +1,130 @@
+{
+  "languages": [
+    {
+      "language": "en",
+      "usageLimit": [
+        { "id": "en.usage_limit", "text": "usage limit" },
+        { "id": "en.hit_limit", "text": "hit your usage limit" },
+        { "id": "en.reached_limit", "text": "reached your usage limit" },
+        { "id": "en.message_limit", "text": "message limit" },
+        { "id": "en.out_of_codex_work_usage", "text": "out of Codex and Work usage" },
+        { "id": "en.add_credits", "text": "add credits" },
+        { "id": "en.upgrade", "text": "upgrade" }
+      ],
+      "retry": [
+        { "id": "en.try_again", "text": "try again" },
+        { "id": "en.try_again_after", "text": "try again after" },
+        { "id": "en.reset", "text": "reset" },
+        { "id": "en.usage_to_reset", "text": "usage to reset" },
+        { "id": "en.wait_for_usage_reset", "text": "wait for usage to reset" }
+      ]
+    },
+    {
+      "language": "zh-TW",
+      "usageLimit": [
+        { "id": "zh_tw.usage_limit", "text": "使用上限" },
+        { "id": "zh_tw.reached_usage_limit", "text": "已達使用上限" },
+        { "id": "zh_tw.limit_reached", "text": "使用量已達上限" },
+        { "id": "zh_tw.usage_exhausted", "text": "使用量已用完" },
+        { "id": "zh_tw.codex_work_usage_exhausted", "text": "Codex 和工作使用量已用完" },
+        { "id": "zh_tw.upgrade_plan", "text": "升級方案" },
+        { "id": "zh_tw.add_credits", "text": "加值點數" }
+      ],
+      "retry": [
+        { "id": "zh_tw.try_again", "text": "再試一次" },
+        { "id": "zh_tw.retry", "text": "重試" }
+      ]
+    },
+    {
+      "language": "zh-CN",
+      "usageLimit": [
+        { "id": "zh_cn.usage_limit", "text": "使用上限" },
+        { "id": "zh_cn.reached_usage_limit", "text": "已达到使用上限" },
+        { "id": "zh_cn.limit_reached", "text": "达到使用限制" }
+      ],
+      "retry": [
+        { "id": "zh_cn.try_again", "text": "再试一次" },
+        { "id": "zh_cn.retry", "text": "重试" }
+      ]
+    },
+    {
+      "language": "ja",
+      "usageLimit": [
+        { "id": "ja.usage_limit", "text": "使用上限" },
+        { "id": "ja.limit_reached", "text": "使用上限に到達" },
+        { "id": "ja.reached_limit", "text": "上限に達しました" }
+      ],
+      "retry": [
+        { "id": "ja.retry", "text": "再試行" },
+        { "id": "ja.reset_time", "text": "リセット時刻" }
+      ]
+    },
+    {
+      "language": "ko",
+      "usageLimit": [
+        { "id": "ko.usage_limit", "text": "사용 한도" },
+        { "id": "ko.limit_reached", "text": "사용 한도 도달" },
+        { "id": "ko.reached_limit", "text": "한도에 도달" }
+      ],
+      "retry": [
+        { "id": "ko.try_again", "text": "다시 시도" },
+        { "id": "ko.reset_time", "text": "재설정 시간" }
+      ]
+    },
+    {
+      "language": "es",
+      "usageLimit": [
+        { "id": "es.usage_limit", "text": "límite de uso" },
+        { "id": "es.reached", "text": "has alcanzado" }
+      ],
+      "retry": [
+        { "id": "es.try_again", "text": "volver a intentarlo" },
+        { "id": "es.retry", "text": "inténtalo de nuevo" }
+      ]
+    },
+    {
+      "language": "fr",
+      "usageLimit": [
+        { "id": "fr.usage_limit", "text": "limite d'utilisation" },
+        { "id": "fr.reached", "text": "atteint votre limite" }
+      ],
+      "retry": [
+        { "id": "fr.retry", "text": "réessayer" },
+        { "id": "fr.try_again", "text": "réessayez" }
+      ]
+    },
+    {
+      "language": "de",
+      "usageLimit": [
+        { "id": "de.usage_limit", "text": "nutzungslimit" },
+        { "id": "de.limit_reached", "text": "nutzungslimit erreicht" }
+      ],
+      "retry": [
+        { "id": "de.retry", "text": "erneut versuchen" },
+        { "id": "de.try_again", "text": "versuche es erneut" }
+      ]
+    },
+    {
+      "language": "pt",
+      "usageLimit": [
+        { "id": "pt.usage_limit", "text": "limite de uso" },
+        { "id": "pt.reached", "text": "atingiu seu limite" }
+      ],
+      "retry": [
+        { "id": "pt.retry", "text": "tentar novamente" },
+        { "id": "pt.try_again", "text": "tente novamente" }
+      ]
+    },
+    {
+      "language": "it",
+      "usageLimit": [
+        { "id": "it.usage_limit", "text": "limite di utilizzo" },
+        { "id": "it.limit_reached", "text": "raggiunto il limite" }
+      ],
+      "retry": [
+        { "id": "it.retry", "text": "riprova" },
+        { "id": "it.try_again", "text": "riprovare" }
+      ]
+    }
+  ]
+}

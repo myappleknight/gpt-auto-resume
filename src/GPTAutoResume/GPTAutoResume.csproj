@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>GPTAutoResume</AssemblyName>
+    <RootNamespace>GPTAutoResume</RootNamespace>
+    <ApplicationIcon>Assets\app-icon.ico</ApplicationIcon>
+    <Version>0.1.0-alpha</Version>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <Authors>EasyLifeHub</Authors>
+    <Description>Windows helper for safely validating active ChatGPT / Codex Work auto-resume after usage interruptions.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="artifacts\**;bin\**;obj\**" />
+    <Page Remove="artifacts\**;bin\**;obj\**" />
+    <ApplicationDefinition Remove="artifacts\**;bin\**;obj\**" />
+    <EmbeddedResource Remove="artifacts\**;bin\**;obj\**" />
+    <None Remove="artifacts\**;bin\**;obj\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\usage_limit_patterns.json" CopyToOutputDirectory="PreserveNewest" />
+    <Resource Include="Assets\app-icon.ico" />
+    <Resource Include="Assets\app-icon.png" />
+    <Resource Include="Assets\fallback-cat-banner.png" />
+  </ItemGroup>
+</Project>

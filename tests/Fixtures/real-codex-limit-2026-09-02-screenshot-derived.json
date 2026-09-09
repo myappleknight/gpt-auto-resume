@@ -1,0 +1,20 @@
+{
+  "source": "screenshot-derived",
+  "real_uia_capture": false,
+  "captured_date": "2026-09-02",
+  "language": "zh-TW",
+  "visible_limit_text": "你的 Codex 和工作使用量已用完。新增點數或升級方案，或等到 清晨7:28 用量重置。",
+  "account_quota_panel_example": {
+    "short_window": {
+      "label": "5 小時",
+      "remaining_percent": 0,
+      "reset_text": "清晨7:28"
+    },
+    "weekly": {
+      "label": "1 週",
+      "remaining_percent": 6,
+      "reset_text": "9月7日"
+    }
+  },
+  "privacy": "No conversation body, account name, username, or machine identifier is included."
+}

@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+      - "v*.*.*-*"
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Test
+        run: dotnet test --configuration Release
+      - name: Publish portable app
+        run: dotnet publish src/GPTAutoResume/GPTAutoResume.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:DebugType=None -p:DebugSymbols=false -o publish/win-x64
+      - name: Add release docs
+        shell: pwsh
+        run: |
+          Copy-Item README.md publish/win-x64/README.md
+          Copy-Item README.zh-TW.md publish/win-x64/README.zh-TW.md
+          Copy-Item LICENSE publish/win-x64/LICENSE
+      - name: Package
+        run: Compress-Archive -Path publish/win-x64/* -DestinationPath GPT-Auto-Resume-${{ github.ref_name }}-win-x64.zip
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          name: GPT Auto Resume ${{ github.ref_name }}
+          files: GPT-Auto-Resume-${{ github.ref_name }}-win-x64.zip
+          body_path: docs/release-notes-v0.1.0.md
