@@ -4,7 +4,7 @@
 
 金吉拉低賽製作所。Chinchilla Design Lab presents。EasyLifeHub 製作。
 
-> Alpha 狀態：`v0.1.0-alpha` 是公開驗證版。真實「額度中斷 → 額度恢復 → 自動輸入 → Enter → 重新開始」端到端驗證尚未完成；v0.1 也不支援多 Work 自動巡邏。
+> Alpha 狀態：`v0.1.1-alpha` 是公開驗證版。Active Work「額度中斷 → 額度恢復 → 自動輸入 → Enter → 重新開始」已完成一次 ChatGPT / Codex Desktop 實機驗證；v0.1 不支援多 Work 自動巡邏。
 
 [English README](README.md)
 
@@ -22,7 +22,7 @@ Alpha 版預設採安全 Dry Run 模式，方便先驗證偵測是否可靠，�
 
 ## 功能狀態
 
-| 功能 | v0.1.0-alpha |
+| 功能 | v0.1.1-alpha |
 | --- | --- |
 | 目前開啟中的 Work 監控 | 支援 |
 | 帳號額度讀取 | 支援 |
@@ -39,7 +39,27 @@ Alpha 版預設採安全 Dry Run 模式，方便先驗證偵測是否可靠，�
 | Cookie / token 擷取 | 不使用 |
 | 多 Work 自動切換 | v0.1 不支援 |
 | 用 sidebar 標題自動切換 | 不支援 |
-| 真實 Active Work E2E | 尚未驗證完成 |
+| 真實 Active Work E2E | 已完成一次實機驗證 |
+
+## v0.1.1-alpha 更新
+
+這版修正 Active Work 續跑最後送出的實機問題：
+
+- 當最後回覆下方 footer 沒有被 UI Automation 暴露時，可信的結構化使用限制提示可協助判定目前已允許的 Active Work 是中斷狀態。
+- ChatGPT ProseMirror 的 placeholder 不再被誤判成使用者草稿。
+- 如果 UI Automation `ValuePattern` 回傳成功但沒有真的寫入 composer，程式會在重新驗證前景視窗、Active Work 身份、額度與空輸入框後，使用受控 clipboard paste fallback。
+- 如果前一次失敗驗證已留下完全相同的續跑訊息，程式可直接送出這個授權草稿，不會永遠卡在草稿保護。
+
+2026-09-13 實機驗證：
+
+```yaml
+Active Work: 已勾選且重新驗證
+額度: 可用
+輸入 readback: PASS
+Enter: 已送出
+工作重新開始: PASS
+防重送紀錄: Sent=true
+```
 
 ## v0.1 範圍：只支援目前開啟中的 Work
 
@@ -80,7 +100,7 @@ GPT Auto Resume v0.1 只處理 ChatGPT / Codex Desktop 目前正在開啟、且�
 從 GitHub Release 下載 Windows x64 portable ZIP：
 
 ```text
-GPT-Auto-Resume-v0.1.0-alpha-win-x64.zip
+GPT-Auto-Resume-v0.1.1-alpha-win-x64.zip
 ```
 
 解壓縮後執行：
@@ -113,7 +133,7 @@ GPT Auto Resume 在本機執行。它不會要求你的 ChatGPT 密碼、cookie�
 
 ### 為什麼沒有真的輸入？
 
-`v0.1.0-alpha` 預設是 Dry Run。這是刻意設計，目的是讓使用者先驗證偵測結果，再決定是否開啟真送出。
+`v0.1.1-alpha` 預設是 Dry Run。這是刻意設計，目的是讓使用者先驗證偵測結果，再決定是否開啟真送出。
 
 ### 我勾選的其他 sidebar Work 為什麼沒續跑？
 
@@ -137,7 +157,7 @@ dotnet publish src/GPTAutoResume/GPTAutoResume.csproj -c Release -r win-x64 --se
 
 v0.1.x：
 
-- 真實 Active Work E2E 驗證。
+- 持續收集更多真實 Active Work E2E 驗證案例。
 - 增加更多真實中斷文案 fixture。
 - 強化最後回覆完成/不完整狀態判斷。
 - 依 alpha 回饋微調 UI。

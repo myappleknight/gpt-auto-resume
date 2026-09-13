@@ -4,7 +4,7 @@ Keep your active ChatGPT / Codex Desktop work moving after usage interruptions.
 
 Chinchilla Design Lab presents. 金吉拉低賽製作所. Built by EasyLifeHub.
 
-> Alpha status: `v0.1.0-alpha` is a public validation release. Real-world automatic resume end-to-end validation is still pending, and multi-Work navigation is not supported in v0.1.
+> Alpha status: `v0.1.1-alpha` is a public validation release. Active Work automatic resume has been live-tested once against ChatGPT / Codex Desktop; multi-Work navigation is not supported in v0.1.
 
 [繁體中文 README](README.zh-TW.md)
 
@@ -22,7 +22,7 @@ The alpha build is intentionally conservative. By default it runs in safe Dry Ru
 
 ## Feature Status
 
-| Feature | v0.1.0-alpha |
+| Feature | v0.1.1-alpha |
 | --- | --- |
 | Active Work monitoring | Yes |
 | Account quota reading | Yes |
@@ -39,7 +39,27 @@ The alpha build is intentionally conservative. By default it runs in safe Dry Ru
 | Cookie/token scraping | No |
 | Multi-Work navigation | Not supported |
 | Sidebar-title auto switching | Not supported |
-| Real Active Work E2E | Not yet verified |
+| Real Active Work E2E | Verified once |
+
+## v0.1.1-alpha Update
+
+This update fixes the final live-submit path for active Work recovery:
+
+- Trusted structural usage-interruption surfaces can qualify an active selected Work when the final footer is not exposed by UI Automation.
+- ChatGPT ProseMirror placeholders are no longer mistaken for user drafts.
+- If UI Automation `ValuePattern` accepts input but does not actually write into the composer, the app uses a guarded clipboard-paste fallback after revalidating the foreground window, active Work identity, quota, and empty composer.
+- If the configured resume message is already present from a prior failed verification, the app can submit that exact authorized draft instead of blocking forever.
+
+Live validation on 2026-09-13:
+
+```yaml
+Active Work: selected and revalidated
+Quota: available
+Input readback: PASS
+Enter: sent
+Generation restarted: PASS
+Duplicate journal: Sent=true
+```
 
 ## v0.1 Scope: Active Work Only
 
@@ -80,7 +100,7 @@ Users can set a custom resume message. Custom text is stored locally.
 Download the Windows x64 portable ZIP from the GitHub Release page:
 
 ```text
-GPT-Auto-Resume-v0.1.0-alpha-win-x64.zip
+GPT-Auto-Resume-v0.1.1-alpha-win-x64.zip
 ```
 
 Unzip it anywhere and run:
@@ -113,7 +133,7 @@ The active Work may not be safely identified, may still be running, or may not b
 
 ### It did not type anything
 
-In `v0.1.0-alpha`, Dry Run is enabled by default. This is intentional so real users can validate detection before enabling real submission.
+In `v0.1.1-alpha`, Dry Run is enabled by default. This is intentional so real users can validate detection before enabling real submission.
 
 ### My checked sidebar Work did not resume
 

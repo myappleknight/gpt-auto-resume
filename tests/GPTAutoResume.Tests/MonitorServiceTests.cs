@@ -52,6 +52,79 @@ public sealed class MonitorServiceTests
     }
 
     [Fact]
+    public void TrustedLimitSurfaceWithUnknownFooterQualifiesActiveSelectedWorkAfterTwoConfirmations()
+    {
+        var target = new TargetWindow(10, 100, "ChatGPT", "ChatGPT");
+        var identity = Identity("work-a");
+        var sender = new FakeSender();
+        var completion = new MutableCompletion
+        {
+            Evidence = new("reply-a", true, FooterPresence.Unknown, "FOOTER_ABSENCE_UNVERIFIED")
+        };
+        var service = new MonitorService(
+            new AppConfig { AutoResume = true, ResumeDelaySeconds = 0,
+                ResumePolicy = ResumePolicy.AutomaticForegroundResume, RequireWorkSelection = true },
+            new FakeScanner([target]),
+            new FakeReader([]) { ConversationIdentity = identity },
+            sender,
+            new InMemoryEventStore(),
+            new NullPossibleLimitDiagnosticStore(),
+            new FakeWorkSelectionStore([identity]),
+            TestCatalog(),
+            new RetryTimeParser(),
+            accountQuotaProvider: new MutableAccountQuota
+            { Snapshot = new(100, _now.AddHours(5), 72, _now.AddDays(6), _now) },
+            workCompletionProvider: completion,
+            limitSurfaceProvider: new FakeLimitSurfaceProvider([
+                Candidate("You're out of Codex and Work usage. Add credits or wait for usage to reset.", LimitSurfaceKind.Banner, depth: 30)
+            ]));
+
+        service.Tick(_now);
+        Assert.Equal(0, sender.SendCount);
+        service.Tick(_now.AddSeconds(10));
+
+        Assert.Equal(1, sender.SendCount);
+        Assert.Equal(AppState.Verifying, service.State);
+        Assert.Equal(2, completion.ReadCount);
+    }
+
+    [Fact]
+    public void ConversationBodyLimitSurfaceCannotQualifyUnknownFooter()
+    {
+        var target = new TargetWindow(10, 100, "ChatGPT", "ChatGPT");
+        var identity = Identity("work-a");
+        var sender = new FakeSender();
+        var completion = new MutableCompletion
+        {
+            Evidence = new("reply-a", true, FooterPresence.Unknown, "FOOTER_ABSENCE_UNVERIFIED")
+        };
+        var service = new MonitorService(
+            new AppConfig { AutoResume = true, ResumeDelaySeconds = 0,
+                ResumePolicy = ResumePolicy.AutomaticForegroundResume, RequireWorkSelection = true },
+            new FakeScanner([target]),
+            new FakeReader([]) { ConversationIdentity = identity },
+            sender,
+            new InMemoryEventStore(),
+            new NullPossibleLimitDiagnosticStore(),
+            new FakeWorkSelectionStore([identity]),
+            TestCatalog(),
+            new RetryTimeParser(),
+            accountQuotaProvider: new MutableAccountQuota
+            { Snapshot = new(100, _now.AddHours(5), 72, _now.AddDays(6), _now) },
+            workCompletionProvider: completion,
+            limitSurfaceProvider: new FakeLimitSurfaceProvider([
+                Candidate("You're out of Codex and Work usage. Add credits or wait for usage to reset.", LimitSurfaceKind.ConversationBody, depth: 30)
+            ]));
+
+        service.Tick(_now);
+        service.Tick(_now.AddSeconds(10));
+
+        Assert.Equal(0, sender.SendCount);
+        Assert.Equal(AppState.NeedsAttention, service.State);
+        Assert.Contains("FOOTER_ABSENCE_UNVERIFIED", service.ResumeStatusText);
+    }
+
+    [Fact]
     public void AccountAvailableNeedsTwoStoppedIncompleteObservationsBeforeResume()
     {
         var quota = new MutableAccountQuota { Snapshot = new(28, _now.AddHours(1), 42, _now.AddDays(1), _now) };
@@ -70,6 +143,18 @@ public sealed class MonitorServiceTests
         service.Tick(_now.AddSeconds(40));
         Assert.Equal(1, sender.SendCount);
         Assert.Equal(0, reader.TextReads);
+    }
+
+    [Fact]
+    public void SenderStateGuardDoesNotRepeatHeavyCompletionScanAfterPreInputVerification()
+    {
+        var h = CompletionService();
+
+        h.Service.Tick(_now);
+        h.Service.Tick(_now.AddSeconds(10));
+
+        Assert.Equal(1, h.Sender.SendCount);
+        Assert.Equal(3, h.Completion.ReadCount);
     }
 
     [Theory]
@@ -125,7 +210,12 @@ public sealed class MonitorServiceTests
     {
         public AssistantCompletionEvidence Evidence { get; set; } = new("reply-a", true, FooterPresence.Absent, "INCOMPLETE_REPLY");
         public Func<AssistantCompletionEvidence>? ReadOverride { get; set; }
-        public AssistantCompletionEvidence Read(TargetWindow target, ConversationTargetIdentity identity, CancellationToken cancellationToken = default) => ReadOverride?.Invoke() ?? Evidence;
+        public int ReadCount { get; private set; }
+        public AssistantCompletionEvidence Read(TargetWindow target, ConversationTargetIdentity identity, CancellationToken cancellationToken = default)
+        {
+            ReadCount++;
+            return ReadOverride?.Invoke() ?? Evidence;
+        }
     }
 
     private (MonitorService Service, FakeSender Sender, MutableAccountQuota Quota, MutableCompletion Completion,

@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.1.1-alpha - 2026-09-13
+
+Active Work live-submit recovery fix.
+
+### Fixed
+
+- Promotes trusted structural ChatGPT / Codex usage-interruption surfaces for the currently active, selected Work when the final action footer is not exposed by UI Automation.
+- Avoids repeating heavy completion scans inside the final sender callback after a current-tick trusted validation has already passed.
+- Treats ChatGPT ProseMirror placeholder text as an empty composer instead of a user draft.
+- Adds a guarded clipboard-paste fallback when UI Automation `ValuePattern` returns but does not actually insert text into the composer.
+- Allows an exact pre-existing authorized resume draft, such as `請繼續`, to be submitted instead of blocking forever after an earlier unconfirmed insertion.
+
+### Validation
+
+- Live Active Work test on 2026-09-13 reached input readback PASS, Enter sent, generation restarted, and duplicate journal `Sent=true`.
+- Tests: 218 passed / 0 failed.
+- Release publish: PASS.
+
+### Still Limited
+
+- Multi-Work sidebar navigation remains unsupported in v0.1.
+- Public builds still default to Dry Run safety mode.
+
 ## 0.1.0-alpha - 2026-09-10
 
 Initial public alpha for real-world validation.

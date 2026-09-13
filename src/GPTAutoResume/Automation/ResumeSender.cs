@@ -110,29 +110,64 @@ public sealed class ResumeSender : IResumeSender
                 return false;
             }
             var draft = input.ReadText();
-            if (draft is null || !string.IsNullOrWhiteSpace(draft))
+            var normalizedDraft = draft?.TrimEnd('\r', '\n');
+            var alreadyInsertedAuthorizedDraft = string.Equals(normalizedDraft, text, StringComparison.Ordinal);
+            if (draft is null || (!string.IsNullOrWhiteSpace(draft) && !alreadyInsertedAuthorizedDraft))
             {
                 Trace("PRE_INPUT_GUARD", draft is null ? "ABORT_DRAFT_UNREADABLE" : "ABORT_DRAFT_NOT_EMPTY", target);
                 return false;
             }
 
-            if (input.SupportsValuePattern)
+            var verified = alreadyInsertedAuthorizedDraft;
+            if (alreadyInsertedAuthorizedDraft)
+            {
+                Trace("PRE_INPUT_GUARD", "AUTHORIZED_DRAFT_ALREADY_PRESENT", target);
+            }
+            else if (input.SupportsValuePattern)
             {
                 input.SetValue(text);
+                Trace("INPUT_PROVIDER_RETURNED", "NOT_YET_VISUALLY_VERIFIED", target);
             }
             else
             {
                 return false;
             }
-            Trace("INPUT_PROVIDER_RETURNED", "NOT_YET_VISUALLY_VERIFIED", target);
 
-            var verified = false;
-            for (var attempt = 0; attempt < 10; attempt++)
+            for (var attempt = 0; !verified && attempt < 20; attempt++)
             {
                 if (string.Equals(input.ReadText()?.TrimEnd('\r', '\n'), text, StringComparison.Ordinal))
                 { verified = true; break; }
                 Thread.Sleep(100);
             }
+
+            if (!verified)
+            {
+                var afterProvider = input.ReadText();
+                if (afterProvider is null || !string.IsNullOrWhiteSpace(afterProvider))
+                {
+                    Trace("INPUT_FALLBACK", afterProvider is null ? "ABORT_DRAFT_UNREADABLE" : "ABORT_DRAFT_CHANGED", target);
+                    return false;
+                }
+
+                if (!verifyConversation() || !_host.IsStillValid(target) || _host.GetForegroundWindow() != target.Handle)
+                {
+                    Trace("INPUT_FALLBACK", "ABORT_PRECONDITION_CHANGED", target);
+                    return false;
+                }
+
+                input.SetFocus();
+                Thread.Sleep(100);
+                _host.FallbackTypeText(text);
+                Trace("INPUT_FALLBACK", "PROVIDER_RETURNED", target);
+
+                for (var attempt = 0; attempt < 20; attempt++)
+                {
+                    if (string.Equals(input.ReadText()?.TrimEnd('\r', '\n'), text, StringComparison.Ordinal))
+                    { verified = true; break; }
+                    Thread.Sleep(100);
+                }
+            }
+
             Trace("INPUT_READBACK", verified ? "PASS" : "FAIL", target);
             if (!verified || !verifyConversation()) return false;
 
@@ -193,7 +228,27 @@ public sealed class ResumeSender : IResumeSender
             return element is null ? null : new UiaChatInputController(element);
         }
 
-        public void FallbackTypeText(string text) => SendKeys.SendWait(text);
+        public void FallbackTypeText(string text)
+        {
+            System.Windows.IDataObject? previousClipboard = null;
+            try { previousClipboard = System.Windows.Clipboard.GetDataObject(); }
+            catch { }
+
+            try
+            {
+                System.Windows.Clipboard.SetText(text);
+                SendKeys.SendWait("^v");
+                Thread.Sleep(100);
+            }
+            finally
+            {
+                if (previousClipboard is not null)
+                {
+                    try { System.Windows.Clipboard.SetDataObject(previousClipboard, true); }
+                    catch { }
+                }
+            }
+        }
         public void SendEnter() => SendKeys.SendWait("{ENTER}");
         public TargetWindow? FirstTarget() => scanner.FindTargets().FirstOrDefault();
     }
@@ -212,7 +267,7 @@ public sealed class ResumeSender : IResumeSender
             var placeholder = child is not null && walker.GetNextSibling(child) is null
                 && child.Current.ClassName.Split(' ').Contains("placeholder", StringComparer.Ordinal)
                 && string.IsNullOrWhiteSpace(child.Current.Name);
-            return ComposerText.Normalize(result, element.Current.Name, placeholder);
+            return ComposerText.Normalize(result, element.Current.Name, placeholder, element.Current.ClassName);
         }
         public bool SupportsValuePattern => element.TryGetCurrentPattern(ValuePattern.Pattern, out _);
         public void SetFocus() => element.SetFocus();

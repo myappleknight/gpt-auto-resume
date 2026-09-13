@@ -24,6 +24,12 @@ public sealed class ResumeSenderTests
         Assert.Null(ComposerText.Normalize(null, "Work with ChatGPT", placeholder));
     }
 
+    [Fact]
+    public void ProseMirrorPlaceholderIsTreatedAsEmptyDraft()
+    {
+        Assert.Equal("", ComposerText.Normalize("\r\n與 ChatGPT 一起工作", "與 ChatGPT 一起工作", false, "ProseMirror ProseMirror-focused"));
+    }
+
     [Theory]
     [InlineData("test", true)]
     [InlineData("other draft", false)]
@@ -63,11 +69,46 @@ public sealed class ResumeSenderTests
     }
 
     [Fact]
+    public void ExistingAuthorizedResumeDraftCanBeSubmitted()
+    {
+        var host = new FakeResumeHost { ForegroundWindow = 100, Text = "請繼續" };
+
+        Assert.True(new ResumeSender(host).TrySend(_target, "請繼續", false, true));
+
+        Assert.Equal(0, host.SetTextCount);
+        Assert.Equal(1, host.SendEnterCount);
+    }
+
+    [Fact]
+    public void ExistingDifferentDraftStillBlocksSubmission()
+    {
+        var host = new FakeResumeHost { ForegroundWindow = 100, Text = "請繼續完成測試" };
+
+        Assert.False(new ResumeSender(host).TrySend(_target, "請繼續", false, true));
+
+        Assert.Equal(0, host.SetTextCount);
+        Assert.Equal(0, host.SendEnterCount);
+    }
+
+    [Fact]
     public void ProviderReturningWithoutInsertingIsNotSuccess()
     {
         var host = new FakeResumeHost { ForegroundWindow = 100, IgnoreValue = true };
         Assert.False(new ResumeSender(host).TrySend(_target, "continue", false, true));
         Assert.Equal(0, host.SendEnterCount);
+    }
+
+    [Fact]
+    public void ProviderReturningWithoutInsertingFallsBackToPaste()
+    {
+        var host = new FakeResumeHost { ForegroundWindow = 100, IgnoreValue = true, FallbackWritesText = true };
+
+        Assert.True(new ResumeSender(host).TrySend(_target, "請繼續", false, true));
+
+        Assert.Equal(1, host.SetTextCount);
+        Assert.Equal(1, host.FallbackTypeTextCount);
+        Assert.Equal(1, host.SendEnterCount);
+        Assert.Equal("請繼續", host.Text);
     }
 
     [Fact]
@@ -109,6 +150,7 @@ public sealed class ResumeSenderTests
     {
         public string Text { get; set; } = "";
         public bool IgnoreValue { get; set; }
+        public bool FallbackWritesText { get; set; }
         public nint ForegroundWindow { get; set; }
         public nint? ChangeForegroundAfterFocus { get; set; }
         public nint? ChangeForegroundAfterSetText { get; set; }
@@ -130,6 +172,7 @@ public sealed class ResumeSenderTests
         public void FallbackTypeText(string text)
         {
             FallbackTypeTextCount++;
+            if (FallbackWritesText) Text = text;
         }
 
         public void SendEnter()

@@ -29,6 +29,7 @@ public sealed class MonitorService
     private LimitEvent? _currentEvent;
     private DateTimeOffset? _verifyUntil;
     private readonly IProductionEventLog _trace;
+    private string _completionValidationReason = "";
 
     public AppState State { get; private set; } = AppState.Monitoring;
     public DateTimeOffset? RetryAt => _currentEvent?.RetryAt;
@@ -157,6 +158,7 @@ public sealed class MonitorService
         {
             _incompleteWorkGate.Reset();
             _completionValidatedAt = null;
+            _completionValidationReason = "";
             _completionResetRequested = false;
         }
 
@@ -224,6 +226,7 @@ public sealed class MonitorService
             _currentEvent = null;
             _incompleteWorkGate.Reset();
             _completionValidatedAt = null;
+            _completionValidationReason = "";
             State = AppState.WaitingForTarget;
             ResumeStatusText = "Waiting for ChatGPT/Codex.";
             Trace("TARGET_FOUND", "FAIL", now);
@@ -234,6 +237,7 @@ public sealed class MonitorService
         {
             _incompleteWorkGate.Reset();
             _completionValidatedAt = null;
+            _completionValidationReason = "";
             _currentEvent = null;
             UsageLimitText = "Account quota not verified available";
             if (FreshQuota(AccountQuota, now) && AccountQuota is { } quota && TryGetBlockingQuotaRetryAt(quota, out var reset))
@@ -313,6 +317,7 @@ public sealed class MonitorService
         {
             _currentEvent = null;
             _completionValidatedAt = null;
+            _completionValidationReason = "";
             var hasCheckedButNotInspectableWork = enabledSelectionHashes.Except(observedSelectedIdentityHashes).Any();
             State = completionBlock is null && !hasCheckedButNotInspectableWork ? AppState.Monitoring : AppState.NeedsAttention;
             ResumeStatusText = hasCheckedButNotInspectableWork
@@ -346,6 +351,7 @@ public sealed class MonitorService
                 "Twice-confirmed incomplete assistant reply", 100)
             { ConversationTarget = candidate.Identity, AssistantReplyIdentity = candidate.Evidence.AssistantReplyIdentity };
         _completionValidatedAt = OperationNow;
+        _completionValidationReason = candidate.Evidence.Reason;
         if (_currentEvent.ResumeAttempted || _eventStore.HasResumeAttempt(eventId))
         {
             State = AppState.Error;
@@ -355,13 +361,60 @@ public sealed class MonitorService
         State = AppState.ReadyToResume;
         ResumeStatusText = "Selected Work is stopped and incomplete; confirmed twice.";
         if (_config.ResumePolicy == ResumePolicy.AutomaticForegroundResume
-            && now >= _currentEvent.RetryAt.AddSeconds(_config.ResumeDelaySeconds)) AttemptResume(now);
+            && now >= _currentEvent.RetryAt.AddSeconds(_config.ResumeDelaySeconds))
+            AttemptResume(now, completionAlreadyValidatedThisTick: true);
     }
 
     private AssistantCompletionEvidence ReadCompletion(TargetWindow window, ConversationTargetIdentity identity)
     {
-        try { return _workCompletionProvider?.Read(window, identity, _operationCancellation) ?? AssistantCompletionEvidence.Unknown("NO_COMPLETION_PROVIDER"); }
+        try
+        {
+            var evidence = _workCompletionProvider?.Read(window, identity, _operationCancellation)
+                ?? AssistantCompletionEvidence.Unknown("NO_COMPLETION_PROVIDER");
+            return PromoteTrustedLimitSurface(window, evidence);
+        }
         catch { return AssistantCompletionEvidence.Unknown("COMPLETION_PROVIDER_FAILED"); }
+    }
+
+    private AssistantCompletionEvidence PromoteTrustedLimitSurface(TargetWindow window, AssistantCompletionEvidence evidence)
+    {
+        if (evidence.IsIncomplete || evidence.Footer == FooterPresence.Present || evidence.Stopped == false
+            || string.IsNullOrWhiteSpace(evidence.AssistantReplyIdentity))
+        {
+            return evidence;
+        }
+
+        if (evidence.Footer != FooterPresence.Unknown || !AvailableQuota(OperationNow))
+        {
+            return evidence;
+        }
+
+        foreach (var candidate in _limitSurfaceProvider.FindLimitSurfaces(window))
+        {
+            _operationCancellation.ThrowIfCancellationRequested();
+            Trace("COMPLETION_LIMIT_SURFACE", $"{candidate.Kind};Eligible={candidate.IsEligibleForAutomation};Confidence={candidate.Confidence};Depth={candidate.Depth}", OperationNow, window);
+            if (!candidate.IsEligibleForAutomation)
+            {
+                continue;
+            }
+
+            var result = _detector.AnalyzeForAutomation(candidate.Text, OperationNow, candidate.HasWarningRole, candidate.HasWarningIcon);
+            if (result.Kind != DetectionKind.LimitDetected)
+            {
+                Trace("COMPLETION_LIMIT_SURFACE", $"DETECTOR_REJECTED:{result.Kind};Confidence={result.Confidence}", OperationNow, window, result.Confidence);
+                continue;
+            }
+
+            Trace("COMPLETION_LIMIT_SURFACE", $"TRUSTED_LIMIT_INTERRUPTION;Confidence={result.Confidence}", OperationNow, window, result.Confidence);
+            return evidence with
+            {
+                Stopped = evidence.Stopped ?? true,
+                Footer = FooterPresence.Absent,
+                Reason = "TRUSTED_LIMIT_SURFACE_WITHOUT_COMPLETED_FOOTER"
+            };
+        }
+
+        return evidence;
     }
 
     private bool VerifyIncompleteWork(DateTimeOffset now)
@@ -609,7 +662,7 @@ public sealed class MonitorService
         return "not_rejected";
     }
 
-    private void AttemptResume(DateTimeOffset now)
+    private void AttemptResume(DateTimeOffset now, bool completionAlreadyValidatedThisTick = false)
     {
         if (_currentEvent is null || Target is null)
         {
@@ -642,10 +695,13 @@ public sealed class MonitorService
             return;
         }
 
-        if (_accountQuotaProvider is not null && !VerifyIncompleteWork(now))
+        if (_accountQuotaProvider is not null
+            && !(completionAlreadyValidatedThisTick && HasCurrentTickCompletionValidation())
+            && !VerifyIncompleteWork(now))
         {
             _incompleteWorkGate.Reset();
             _completionValidatedAt = null;
+            _completionValidationReason = "";
             ResumeStatusText = "Resume aborted: last reply completion state is not safely confirmed.";
             Trace("PRE_INPUT_COMPLETION", "BLOCKED", now);
             State = AppState.Error;
@@ -685,7 +741,7 @@ public sealed class MonitorService
             var originalIdentity = _currentEvent.ConversationTarget;
             sent = _sender.TrySend(Target, _config.ResumeText, _config.DryRun, _config.SendEnter && _config.AllowRealSubmit,
                 () => !_operationCancellation.IsCancellationRequested
-                    && (_accountQuotaProvider is null || VerifyIncompleteWork(OperationNow))
+                    && VerifyResumeTargetLightweight(originalIdentity)
                     && (originalIdentity is null || _reader is IConversationIdentityProvider currentIdentity
                         && currentIdentity.IsConversationStillActive(Target.Handle, originalIdentity)));
             Trace("INPUT", _config.DryRun ? "SAFETY BLOCKED" : sent ? "PROVIDER_REPORTED_INSERTED" : "FAIL_OR_UNCONFIRMED", now);
@@ -722,6 +778,47 @@ public sealed class MonitorService
             ? $"DRY RUN - Resume target verified. Would send: {_config.ResumeText}"
             : sent ? "Resume text inserted." : "Resume aborted.";
         State = sent ? AppState.Verifying : AppState.Error;
+    }
+
+    private bool HasCurrentTickCompletionValidation()
+    {
+        var now = OperationNow;
+        return Target is not null
+            && _currentEvent?.ConversationTarget is not null
+            && !string.IsNullOrWhiteSpace(_currentEvent.AssistantReplyIdentity)
+            && _completionValidatedAt is { } validated
+            && _completionValidationReason == "TRUSTED_LIMIT_SURFACE_WITHOUT_COMPLETED_FOOTER"
+            && now - validated <= TimeSpan.FromSeconds(10)
+            && _scanner.IsStillValid(Target)
+            && _workSelectionStore.IsAutoResumeEnabled(_currentEvent.ConversationTarget)
+            && AvailableQuota(now)
+            && (_reader is not IConversationIdentityProvider identities
+                || identities.IsConversationStillActive(Target.Handle, _currentEvent.ConversationTarget));
+    }
+
+    private bool VerifyResumeTargetLightweight(ConversationTargetIdentity? identity)
+    {
+        if (_operationCancellation.IsCancellationRequested || _pauseRequested || _completionResetRequested || Target is null)
+        {
+            return false;
+        }
+
+        if (!_config.AutoResume || !_scanner.IsStillValid(Target))
+        {
+            return false;
+        }
+
+        if (identity is not null && !_workSelectionStore.IsAutoResumeEnabled(identity))
+        {
+            return false;
+        }
+
+        if (_accountQuotaProvider is not null && !AvailableQuota(OperationNow))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private bool AccountQuotaStillBlocksResume(DateTimeOffset now)
