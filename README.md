@@ -1,6 +1,6 @@
-# GPT Auto Resume | Free Auto-Continue Helper
+# Free Helper That Clicks Continue For ChatGPT / Codex
 
-Free Windows helper. When ChatGPT / Codex stops because your usage limit is reached, this little app watches for quota recovery.
+GPT Auto Resume is a free Windows helper. When ChatGPT / Codex stops because your usage limit is reached, this little app watches for quota recovery.
 
 When quota comes back, it can type `Please continue` into the currently open and allowed Work, press Enter, and let the AI keep going.
 
@@ -8,7 +8,7 @@ Made by EasyLifeHub. Chinchilla Design Lab presents. 金吉拉低賽製作所.
 
 [繁體中文 README](README.zh-TW.md)
 
-## In One Sentence
+## Understand It In One Sentence
 
 You do not have to pay for this tool or sit in front of the computer waiting for your ChatGPT / Codex quota to reset.
 

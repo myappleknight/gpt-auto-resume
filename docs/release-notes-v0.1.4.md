@@ -1,6 +1,6 @@
-# GPT Auto Resume v0.1.4-alpha｜免費自動按繼續小工具
+# 免費幫 ChatGPT / Codex 自動按繼續
 
-免費 Windows 小工具。
+GPT Auto Resume v0.1.4-alpha 是免費 Windows 小工具。
 
 如果你的 ChatGPT / Codex 跑到一半跳出「額度用完」，你不用一直守在電腦前等重置。
 

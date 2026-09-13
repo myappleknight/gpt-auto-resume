@@ -1,6 +1,6 @@
-# GPT Auto Resume｜免費自動按繼續小工具
+# 免費幫 ChatGPT / Codex 自動按繼續
 
-免費 Windows 小工具。ChatGPT / Codex 跑到一半被額度卡住時，它會幫你盯著。
+GPT Auto Resume 是免費 Windows 小工具。ChatGPT / Codex 跑到一半被額度卡住時，它會幫你盯著。
 
 額度恢復後，它會回到你目前開著、也已經允許的小工作，輸入 `請繼續`，再按 Enter，讓 AI 接著做下去。
 
@@ -8,7 +8,7 @@
 
 [English README](README.md)
 
-## 一句話
+## 一句話看懂
 
 你不用付費買這個工具，也不用一直守在電腦前等額度恢復。
 
