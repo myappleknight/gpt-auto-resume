@@ -165,7 +165,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     public string UsageLimit => _monitor.UsageLimitText;
     public string RetryAt => _previewRetryAt ?? _monitor.RetryAt?.ToString("HH:mm") ?? "";
     public string RetryAtInline => string.IsNullOrWhiteSpace(RetryAt) ? "" : string.Format(T("EstimatedResumeAt"), RetryAt);
-    public string Version => "v0.1.1-alpha";
+    public string Version => "v0.1.2-alpha";
     public string Tagline => T("Tagline");
     public string StudioPresents => T("StudioPresents");
     public string HeroTitle => T("HeroTitle");

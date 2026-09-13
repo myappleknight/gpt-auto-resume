@@ -7,6 +7,7 @@ public sealed class JsonEventStore : IEventStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
     private static readonly string EventStoreMutexName = "Local\\GPTAutoResume.EventStore";
+    private static readonly TimeSpan UnconfirmedClaimTtl = TimeSpan.FromSeconds(90);
     private readonly string _path;
     private Dictionary<string, EventRecord> _records;
     private bool _loadFailed;
@@ -83,7 +84,9 @@ public sealed class JsonEventStore : IEventStore
     private sealed record EventRecord(bool ResumeAttempted, DateTimeOffset AttemptedAt, bool Sent);
 
     private bool IsAttempted(string eventId) =>
-        _records.TryGetValue(eventId, out var record) && record.ResumeAttempted;
+        _records.TryGetValue(eventId, out var record)
+        && record.ResumeAttempted
+        && (record.Sent || DateTimeOffset.Now - record.AttemptedAt <= UnconfirmedClaimTtl);
 
     private bool IsSent(string eventId) =>
         _records.TryGetValue(eventId, out var record) && record.Sent;

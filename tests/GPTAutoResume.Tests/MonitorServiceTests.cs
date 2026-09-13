@@ -897,7 +897,7 @@ public sealed class MonitorServiceTests
     }
 
     [Fact]
-    public void CheckedWorkThatIsNotAnInspectableTargetIsReportedAsNotImplemented()
+    public void CheckedWorkThatIsNotAnInspectableTargetDoesNotForceAttentionInActiveWorkScope()
     {
         var active = Identity("active-unselected-work");
         var checkedInactive = Identity("checked-inactive-work");
@@ -919,12 +919,12 @@ public sealed class MonitorServiceTests
 
         service.Tick(_now);
 
-        Assert.Equal(AppState.NeedsAttention, service.State);
-        Assert.Contains("Open the Work you want to auto-resume", service.ResumeStatusText);
+        Assert.Equal(AppState.Monitoring, service.State);
+        Assert.Contains("Other remembered Works are not auto-switched", service.ResumeStatusText);
     }
 
     [Fact]
-    public void AdditionalCheckedWorkOutsideInspectableTargetsIsReported()
+    public void AdditionalCheckedWorkOutsideInspectableTargetsDoesNotBlockActiveWorkMonitoring()
     {
         var activeChecked = Identity("active-checked-work");
         var checkedInactive = Identity("checked-inactive-work");
@@ -946,8 +946,8 @@ public sealed class MonitorServiceTests
 
         service.Tick(_now);
 
-        Assert.Equal(AppState.NeedsAttention, service.State);
-        Assert.Contains("Open the Work you want to auto-resume", service.ResumeStatusText);
+        Assert.Equal(AppState.Monitoring, service.State);
+        Assert.Contains("Other remembered Works are not auto-switched", service.ResumeStatusText);
     }
 
     [Fact]

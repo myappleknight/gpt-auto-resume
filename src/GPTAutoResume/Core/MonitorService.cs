@@ -319,11 +319,11 @@ public sealed class MonitorService
             _completionValidatedAt = null;
             _completionValidationReason = "";
             var hasCheckedButNotInspectableWork = enabledSelectionHashes.Except(observedSelectedIdentityHashes).Any();
-            State = completionBlock is null && !hasCheckedButNotInspectableWork ? AppState.Monitoring : AppState.NeedsAttention;
-            ResumeStatusText = hasCheckedButNotInspectableWork
-                ? (_workNavigator is null ? "Open the Work you want to auto-resume in ChatGPT/Codex, then allow it in this app."
-                    : "A remembered Work could not be safely verified. Automatic checks will retry.")
-                : completionBlock is null ? "No twice-confirmed incomplete selected Work."
+            State = completionBlock is null ? AppState.Monitoring : AppState.NeedsAttention;
+            ResumeStatusText = completionBlock is null
+                ? (hasCheckedButNotInspectableWork
+                    ? "Monitoring the active Work. Other remembered Works are not auto-switched in v0.1."
+                    : "No twice-confirmed incomplete selected Work.")
                 : $"Selected Work cannot be verified: {completionBlock}. Automatic checks will continue.";
             if (hasCheckedButNotInspectableWork) Trace("CHECKED_WORK_INSPECTION", _workNavigator is null ? "NOT_IMPLEMENTED" : "LOCATOR_UNVERIFIED", now, Target);
             return;

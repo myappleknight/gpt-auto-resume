@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.1.2-alpha - 2026-09-13
+
+Active Work readiness/status correction after the live-submit fix.
+
+### Fixed
+
+- Non-active remembered Works no longer force the main window into the red `Needs attention` state in the v0.1 Active Work scope.
+- Old unconfirmed `Sent=false` resume claims now expire after a short safety lease, so a failed verification does not block the same active Work forever after the sender is fixed.
+- Successful `Sent=true` records still block duplicate sends permanently for the same interruption event.
+
+### Validation
+
+- Tests: 220 passed / 0 failed.
+- Release build: PASS.
+- Active Work live-submit validation from 2026-09-13 remains the latest successful real input + Enter run.
+
+### Still Limited
+
+- Multi-Work sidebar navigation remains unsupported in v0.1.
+- Public builds still default to Dry Run safety mode.
+
 ## 0.1.1-alpha - 2026-09-13
 
 Active Work live-submit recovery fix.
