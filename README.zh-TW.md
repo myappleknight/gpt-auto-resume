@@ -1,153 +1,157 @@
 # GPT Auto Resume
 
-讓目前開啟中的 ChatGPT / Codex Work，在使用額度恢復後可以安全接著跑。
+ChatGPT / Codex 跑到一半被額度卡住時，這個小工具會幫你盯著。
 
-金吉拉低賽製作所。Chinchilla Design Lab presents。EasyLifeHub 製作。
+額度恢復後，它會回到你目前開著、也已經允許的小工作，輸入 `請繼續`，再按 Enter，讓 AI 接著做下去。
 
-> Alpha 狀態：`v0.1.2-alpha` 是公開驗證版。Active Work「額度中斷 → 額度恢復 → 自動輸入 → Enter → 重新開始」已完成一次 ChatGPT / Codex Desktop 實機驗證；v0.1 不支援多 Work 自動巡邏。
+金吉拉低賽製作所。EasyLifeHub 製作。
 
 [English README](README.md)
 
-## 這是什麼
+## 一句話
 
-GPT Auto Resume 是一款 Windows 可攜式小工具，用來監控目前開啟中的 ChatGPT / Codex Work。當工作因使用額度中斷，程式會等待額度恢復，重新確認目前工作的安全狀態，再準備送出對應語言的續跑訊息，例如 `請繼續`。
+你不用一直守在電腦前等額度恢復。
 
-Alpha 版預設採安全 Dry Run 模式，方便先驗證偵測是否可靠，不會一下載就真的幫你送出。
+GPT Auto Resume 會幫你看：
 
-## 適合誰
+- 現在 ChatGPT / Codex 還有沒有額度
+- 目前開著的 Work 有沒有被你允許自動續跑
+- AI 是不是已經停住，而且看起來還沒完成
+- 條件都對時，自動輸入續跑訊息並送出
 
-- 會讓 Codex 長時間跑工作的使用者。
-- 想在本機監控額度恢復、減少手動盯畫面的人。
-- 願意協助驗證 ChatGPT / Codex Desktop 真實中斷狀態的 alpha 測試者。
+## 它適合誰
 
-## 功能狀態
+- 會讓 Codex 跑很久的人
+- 常常遇到「額度用完，等重置後要手動打請繼續」的人
+- 不想半夜或出門時一直盯著 ChatGPT 的人
+
+## 它現在能做什麼
 
 | 功能 | v0.1.2-alpha |
 | --- | --- |
-| 目前開啟中的 Work 監控 | 支援 |
-| 帳號額度讀取 | 支援 |
-| 多語續跑訊息 | 支援 |
-| 繁體中文介面 | 支援 |
-| English UI | 支援 |
-| 日本語 UI | 支援 |
-| Dry Run 安全模式 | 預設開啟 |
-| 防重複送出 | 支援 |
-| 前景視窗重新驗證 | 支援 |
-| 聊天輸入框驗證 | 支援 |
-| 固定座標點擊 | 不使用 |
-| OCR 動作定位 | 不使用 |
-| Cookie / token 擷取 | 不使用 |
-| 多 Work 自動切換 | v0.1 不支援 |
-| 用 sidebar 標題自動切換 | 不支援 |
-| 真實 Active Work E2E | 已完成一次實機驗證 |
+| 監控目前開著的 ChatGPT / Codex Work | 可以 |
+| 讀取帳號剩餘額度 | 可以 |
+| 額度恢復後自動輸入 `請繼續` | 可以，需先允許該 Work |
+| 自動按 Enter | 可以，需開啟真送出設定 |
+| 防止同一次中斷重複送出 | 可以 |
+| 繁體中文 / English / 日本語介面 | 可以 |
+| 一次巡邏 sidebar 裡很多 Work | v0.1 不支援 |
+| 靠 sidebar 標題猜是哪個 Work | 不做，避免送錯 |
 
-## v0.1.2-alpha 更新
+## 先講清楚限制
 
-這版修正 Active Work 續跑最後送出的實機問題，也修正 active Work 安全時仍被拖成紅字「需要確認」的狀況：
+v0.1 只處理「目前 ChatGPT / Codex 視窗裡開著的那一個 Work」。
 
-- 當最後回覆下方 footer 沒有被 UI Automation 暴露時，可信的結構化使用限制提示可協助判定目前已允許的 Active Work 是中斷狀態。
-- ChatGPT ProseMirror 的 placeholder 不再被誤判成使用者草稿。
-- 如果 UI Automation `ValuePattern` 回傳成功但沒有真的寫入 composer，程式會在重新驗證前景視窗、Active Work 身份、額度與空輸入框後，使用受控 clipboard paste fallback。
-- 如果前一次失敗驗證已留下完全相同的續跑訊息，程式可直接送出這個授權草稿，不會永遠卡在草稿保護。
-- v0.1 Active Work 範圍內，其他非 active 的已記住 Work 不再把主狀態強制變成紅字。
-- 舊的未確認失敗 claim 會過期並允許重試；已成功送出的 `Sent=true` 仍會阻止重複送出。
+它不會自己去 sidebar 裡面一個一個切換你勾選的 Work。原因很簡單：目前 ChatGPT Desktop 沒有公開穩定的 Work ID 或連結，可以讓小工具 100% 確認「這就是原本那個對話」。只靠標題很危險，兩個 Work 可能同名，送錯地方比不送更糟。
 
-2026-09-13 實機驗證：
+所以現在的正確用法是：
 
-```yaml
-Active Work: 已勾選且重新驗證
-額度: 可用
-輸入 readback: PASS
-Enter: 已送出
-工作重新開始: PASS
-防重送紀錄: Sent=true
+```text
+打開你要續跑的 Work
+↓
+在 GPT Auto Resume 裡允許它
+↓
+讓它保持開著
+↓
+額度恢復後，小工具才會幫這個 Work 續跑
 ```
 
-## v0.1 範圍：只支援目前開啟中的 Work
+## 怎麼使用
 
-GPT Auto Resume v0.1 只處理 ChatGPT / Codex Desktop 目前正在開啟、且你已在小工具中允許的 Work。
-
-它不會自動巡邏 sidebar 裡所有打勾的 Work。原因是目前 ChatGPT Desktop 沒有公開、穩定、可驗證的 Work id、conversation id 或 deep link，可以安全地重新定位未開啟的 Work。Sidebar 標題只能拿來顯示，不能當作送出訊息的身份依據。
-
-## 安全設計
-
-這個工具採 fail-closed：只要無法證明安全，就不動作。
-
-主要保護：
-
-- 額度來源以帳號額度資料為主，不把舊對話文字當額度來源。
-- v0.1 僅限目前開啟中的 Active Work。
-- Work 必須先被使用者允許。
-- 工作仍在生成時不送。
-- 需要確認最後狀態是不完整停止，而不是正常完成或未知。
-- 需要連續穩定觀察後才進入續跑判斷。
-- 輸入前重新驗證前景視窗 HWND。
-- 驗證真正的聊天輸入框。
-- 輸入前先寫入防重複送出紀錄。
-- 無法驗證原 Work 身份時直接中止。
-- 不用固定座標、不用 OCR 定位、不擷取 cookie、不擷取 bearer token、不使用私有登入 endpoint。
-
-## 預設續跑訊息
-
-| 語言 | 預設訊息 |
-| --- | --- |
-| 繁體中文 | `請繼續` |
-| English | `Please continue` |
-| 日本語 | `続けてください` |
-
-你也可以改成自己的續跑訊息。自訂文字只保存在本機。
-
-## 安裝與使用
-
-從 GitHub Release 下載 Windows x64 portable ZIP：
+1. 到 GitHub Release 下載：
 
 ```text
 GPT-Auto-Resume-v0.1.2-alpha-win-x64.zip
 ```
 
-解壓縮後執行：
+2. 解壓縮。
+
+3. 執行：
 
 ```text
 GPTAutoResume.exe
 ```
 
-不需要安裝程式。
+4. 打開 ChatGPT / Codex Desktop。
 
-## 系統需求
+5. 切到你要續跑的 Work。
 
-- Windows 10 或 Windows 11
-- ChatGPT / Codex Desktop
-- Windows x64
+6. 在小工具裡確認這個 Work 已被允許自動續跑。
 
-## 隱私
+7. 放著即可。
 
-GPT Auto Resume 在本機執行。它不會要求你的 ChatGPT 密碼、cookie、bearer token、付款資料或 API key。
+## 什麼時候會自動送出
 
-程式會讀取有限的本機 UI metadata 與帳號額度狀態，用於偵測與安全確認。它不應保存完整私人對話。若要分享診斷檔，請先自行檢查內容。
+它不會看到額度有了就亂送。
 
-可選的貓咪 Banner 會從 EasyLifeHub 下載圖片並存在本機快取。關閉 Banner 後不會請求 Banner server。使用者主動點擊 Banner 時，會用系統預設瀏覽器開啟金吉拉低賽 Webtoons 漫畫頁；程式不會自動開啟。
+必須同時符合：
 
-## 疑難排解
+- 目前開著的是已允許的 Work
+- 帳號額度已恢復
+- AI 不是正在生成中
+- 最後狀態看起來是被中斷、還沒正常完成
+- 小工具連續確認狀態穩定
+- 輸入框是安全可用的
+- 沒有同一次中斷已經送過的紀錄
 
-### 畫面顯示「需要確認」
+符合後才會輸入續跑訊息，例如：
 
-代表目前 Work 可能還在執行、尚未允許，或小工具無法安全確認它就是要續跑的目標。請打開你要監控的 Work，並在小工具中允許它。
+```text
+請繼續
+```
 
-### 為什麼沒有真的輸入？
+然後按 Enter。
 
-`v0.1.2-alpha` 預設是 Dry Run。這是刻意設計，目的是讓使用者先驗證偵測結果，再決定是否開啟真送出。
+## 為什麼有時候它不動
 
-### 我勾選的其他 sidebar Work 為什麼沒續跑？
+常見原因：
 
-v0.1 不支援多 Work 自動切換。只有目前開啟中的 Active Work 屬於支援範圍。
+- 目前開著的 Work 還在跑
+- 目前開著的 Work 沒有被允許
+- 這個回覆看起來已經正常完成
+- 小工具無法安全確認目前 Work
+- 你勾的是 sidebar 裡別的 Work，但那個 Work 不是目前開著的 Work
+- 公開版預設可能仍是 Dry Run，只做偵測不真送
 
-### 額度看起來沒有即時更新
+這些情況它會選擇不動。這是刻意設計，避免把 `請繼續` 送到錯的地方。
 
-可以手動重新讀取額度。自動背景檢查會保持輕量，避免打擾正常使用。
+## 預設續跑訊息
 
-## 開發
+| 介面語言 | 預設訊息 |
+| --- | --- |
+| 繁體中文 | `請繼續` |
+| English | `Please continue` |
+| 日本語 | `続けてください` |
 
-Windows 安裝 .NET 8 SDK 後：
+你可以改成自己的文字，自訂內容只存在你的電腦裡。
+
+## 隱私與安全
+
+GPT Auto Resume 在你的電腦本機執行。
+
+它不會要求：
+
+- ChatGPT 密碼
+- cookie
+- bearer token
+- API key
+- 付款資料
+
+它也不靠固定座標亂點、不用 OCR 猜畫面、不用 sidebar 標題當真正身份。
+
+## 下載
+
+最新版：
+
+[GPT Auto Resume v0.1.2-alpha](https://github.com/myappleknight/gpt-auto-resume/releases/tag/v0.1.2-alpha)
+
+Windows x64 ZIP：
+
+[GPT-Auto-Resume-v0.1.2-alpha-win-x64.zip](https://github.com/myappleknight/gpt-auto-resume/releases/download/v0.1.2-alpha/GPT-Auto-Resume-v0.1.2-alpha-win-x64.zip)
+
+## 給開發者
+
+需要自己 build 時：
 
 ```powershell
 dotnet restore
@@ -155,20 +159,11 @@ dotnet test
 dotnet publish src/GPTAutoResume/GPTAutoResume.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish/win-x64
 ```
 
-## Roadmap
+## 接下來想改善
 
-v0.1.x：
-
-- 持續收集更多真實 Active Work E2E 驗證案例。
-- 增加更多真實中斷文案 fixture。
-- 強化最後回覆完成/不完整狀態判斷。
-- 依 alpha 回饋微調 UI。
-
-未來，取決於 ChatGPT Desktop 是否提供穩定能力：
-
-- 穩定 Desktop Work identity。
-- 安全的多 Work 導航。
-- 多個已選 Work 自動續跑。
+- 收集更多真實額度中斷案例
+- 讓「最後回覆是否完成」判斷更穩
+- 等 ChatGPT Desktop 未來若提供穩定 Work ID，再支援多 Work 自動續跑
 
 ## License
 
