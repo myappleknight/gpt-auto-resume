@@ -1,6 +1,6 @@
 # GPT Auto Resume
 
-When ChatGPT / Codex stops because your usage limit is reached, this little Windows app watches for quota recovery.
+Free Windows helper. When ChatGPT / Codex stops because your usage limit is reached, this little app watches for quota recovery.
 
 When quota comes back, it can type `Please continue` into the currently open and allowed Work, press Enter, and let the AI keep going.
 
@@ -10,7 +10,7 @@ Made by EasyLifeHub. Chinchilla Design Lab presents. 金吉拉低賽製作所.
 
 ## In One Sentence
 
-You do not have to sit in front of the computer waiting for your ChatGPT / Codex quota to reset.
+You do not have to pay for this tool or sit in front of the computer waiting for your ChatGPT / Codex quota to reset.
 
 GPT Auto Resume watches:
 
@@ -31,6 +31,7 @@ If everything looks safe, it sends the resume message for you.
 
 | Feature | v0.1.2-alpha |
 | --- | --- |
+| Free to use | Yes |
 | Watch the currently open ChatGPT / Codex Work | Yes |
 | Read account quota | Yes |
 | Type `Please continue` after quota returns | Yes, for an allowed active Work |
