@@ -29,13 +29,13 @@ If everything looks safe, it sends the resume message for you.
 
 ## What It Can Do Today
 
-| Feature | v0.1.2-alpha |
+| Feature | v0.1.3-alpha |
 | --- | --- |
 | Free to use | Yes |
 | Watch the currently open ChatGPT / Codex Work | Yes |
 | Read account quota | Yes |
 | Type `Please continue` after quota returns | Yes, for an allowed active Work |
-| Press Enter | Yes, when real submit is enabled |
+| Press Enter | Yes, enabled by default for new installs |
 | Avoid duplicate sends for the same interruption | Yes |
 | Traditional Chinese / English / Japanese UI | Yes |
 | Patrol many sidebar Works automatically | Not supported in v0.1 |
@@ -64,7 +64,7 @@ When quota returns, the app can resume that Work
 1. Download the Windows ZIP from GitHub Releases:
 
 ```text
-GPT-Auto-Resume-v0.1.2-alpha-win-x64.zip
+GPT-Auto-Resume-v0.1.3-alpha-win-x64.zip
 ```
 
 2. Unzip it.
@@ -82,6 +82,8 @@ GPTAutoResume.exe
 6. Allow that Work inside GPT Auto Resume.
 
 7. Leave it running.
+
+For new installs, real submit is enabled by default: the app can type the resume message and press Enter. If you already used an older version, the app keeps your existing local settings; check Settings if you want to confirm that Dry Run is off and Enter is enabled.
 
 ## When It Will Send
 
@@ -114,7 +116,7 @@ Common reasons:
 - the last response already looks complete
 - the app cannot safely verify the current Work
 - the Work you checked is in the sidebar, but it is not the Work currently open
-- the public build may still be in Dry Run mode, which detects but does not really submit
+- an older local setting still has Dry Run enabled, which detects but does not really submit
 
 When unsure, the app does nothing. That is intentional: not sending is better than sending to the wrong Work.
 
@@ -146,11 +148,11 @@ It does not use fixed-coordinate clicking, OCR guessing, or sidebar titles as th
 
 Latest release:
 
-[GPT Auto Resume v0.1.2-alpha](https://github.com/myappleknight/gpt-auto-resume/releases/tag/v0.1.2-alpha)
+[GPT Auto Resume v0.1.3-alpha](https://github.com/myappleknight/gpt-auto-resume/releases/tag/v0.1.3-alpha)
 
 Windows x64 ZIP:
 
-[GPT-Auto-Resume-v0.1.2-alpha-win-x64.zip](https://github.com/myappleknight/gpt-auto-resume/releases/download/v0.1.2-alpha/GPT-Auto-Resume-v0.1.2-alpha-win-x64.zip)
+[GPT-Auto-Resume-v0.1.3-alpha-win-x64.zip](https://github.com/myappleknight/gpt-auto-resume/releases/download/v0.1.3-alpha/GPT-Auto-Resume-v0.1.3-alpha-win-x64.zip)
 
 ## For Developers
 

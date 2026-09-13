@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.3-alpha - 2026-09-13
+
+Default behavior update for real users.
+
+### Changed
+
+- New installs now default to real Active Work auto resume: `DryRun=false`, `SendEnter=true`, `AllowRealSubmit=true`, and `AutomaticForegroundResume`.
+- Existing local config files are still respected, so upgrading users keep their previous choices.
+- README now explains in plain language that the app is free and that new installs can type the resume message and press Enter by default.
+
+### Validation
+
+- Added a regression test that locks the new-install defaults.
+
 ## 0.1.2-alpha - 2026-09-13
 
 Active Work readiness/status correction after the live-submit fix.

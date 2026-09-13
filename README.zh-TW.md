@@ -27,13 +27,13 @@ GPT Auto Resume 會幫你看：
 
 ## 它現在能做什麼
 
-| 功能 | v0.1.2-alpha |
+| 功能 | v0.1.3-alpha |
 | --- | --- |
 | 免費使用 | 是 |
 | 監控目前開著的 ChatGPT / Codex Work | 可以 |
 | 讀取帳號剩餘額度 | 可以 |
 | 額度恢復後自動輸入 `請繼續` | 可以，需先允許該 Work |
-| 自動按 Enter | 可以，需開啟真送出設定 |
+| 自動按 Enter | 可以，新安裝預設開啟 |
 | 防止同一次中斷重複送出 | 可以 |
 | 繁體中文 / English / 日本語介面 | 可以 |
 | 一次巡邏 sidebar 裡很多 Work | v0.1 不支援 |
@@ -62,7 +62,7 @@ v0.1 只處理「目前 ChatGPT / Codex 視窗裡開著的那一個 Work」。
 1. 到 GitHub Release 下載：
 
 ```text
-GPT-Auto-Resume-v0.1.2-alpha-win-x64.zip
+GPT-Auto-Resume-v0.1.3-alpha-win-x64.zip
 ```
 
 2. 解壓縮。
@@ -80,6 +80,8 @@ GPTAutoResume.exe
 6. 在小工具裡確認這個 Work 已被允許自動續跑。
 
 7. 放著即可。
+
+第一次安裝的新使用者，預設就是會真送出：會輸入續跑訊息，也會按 Enter。若你之前已經開過舊版，程式會沿用你原本的本機設定；需要時可到設定頁確認 Dry Run 是否關閉、Enter 是否開啟。
 
 ## 什麼時候會自動送出
 
@@ -112,7 +114,7 @@ GPTAutoResume.exe
 - 這個回覆看起來已經正常完成
 - 小工具無法安全確認目前 Work
 - 你勾的是 sidebar 裡別的 Work，但那個 Work 不是目前開著的 Work
-- 公開版預設可能仍是 Dry Run，只做偵測不真送
+- 舊版留下的本機設定仍是 Dry Run，只做偵測不真送
 
 這些情況它會選擇不動。這是刻意設計，避免把 `請繼續` 送到錯的地方。
 
@@ -144,11 +146,11 @@ GPT Auto Resume 在你的電腦本機執行。
 
 最新版：
 
-[GPT Auto Resume v0.1.2-alpha](https://github.com/myappleknight/gpt-auto-resume/releases/tag/v0.1.2-alpha)
+[GPT Auto Resume v0.1.3-alpha](https://github.com/myappleknight/gpt-auto-resume/releases/tag/v0.1.3-alpha)
 
 Windows x64 ZIP：
 
-[GPT-Auto-Resume-v0.1.2-alpha-win-x64.zip](https://github.com/myappleknight/gpt-auto-resume/releases/download/v0.1.2-alpha/GPT-Auto-Resume-v0.1.2-alpha-win-x64.zip)
+[GPT-Auto-Resume-v0.1.3-alpha-win-x64.zip](https://github.com/myappleknight/gpt-auto-resume/releases/download/v0.1.3-alpha/GPT-Auto-Resume-v0.1.3-alpha-win-x64.zip)
 
 ## 給開發者
 
