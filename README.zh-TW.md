@@ -1,4 +1,4 @@
-# GPT Auto Resume
+# GPT Auto Resume｜免費自動按繼續小工具
 
 免費 Windows 小工具。ChatGPT / Codex 跑到一半被額度卡住時，它會幫你盯著。
 
@@ -15,9 +15,9 @@
 GPT Auto Resume 會幫你看：
 
 - 現在 ChatGPT / Codex 還有沒有額度
-- 目前開著的 Work 有沒有被你允許自動續跑
+- 目前開著的 Work 有沒有被你允許自動按繼續
 - AI 是不是已經停住，而且看起來還沒完成
-- 條件都對時，自動輸入續跑訊息並送出
+- 條件都對時，自動輸入續跑訊息並按 Enter
 
 ## 它適合誰
 
@@ -27,7 +27,7 @@ GPT Auto Resume 會幫你看：
 
 ## 它現在能做什麼
 
-| 功能 | v0.1.3-alpha |
+| 功能 | v0.1.4-alpha |
 | --- | --- |
 | 免費使用 | 是 |
 | 監控目前開著的 ChatGPT / Codex Work | 可以 |
@@ -62,7 +62,7 @@ v0.1 只處理「目前 ChatGPT / Codex 視窗裡開著的那一個 Work」。
 1. 到 GitHub Release 下載：
 
 ```text
-GPT-Auto-Resume-v0.1.3-alpha-win-x64.zip
+GPT-Auto-Resume-v0.1.4-alpha-win-x64.zip
 ```
 
 2. 解壓縮。
@@ -77,7 +77,7 @@ GPTAutoResume.exe
 
 5. 切到你要續跑的 Work。
 
-6. 在小工具裡確認這個 Work 已被允許自動續跑。
+6. 在小工具裡確認這個 Work 已被允許自動按繼續。
 
 7. 放著即可。
 
@@ -146,11 +146,11 @@ GPT Auto Resume 在你的電腦本機執行。
 
 最新版：
 
-[GPT Auto Resume v0.1.3-alpha](https://github.com/myappleknight/gpt-auto-resume/releases/tag/v0.1.3-alpha)
+[GPT Auto Resume v0.1.4-alpha](https://github.com/myappleknight/gpt-auto-resume/releases/tag/v0.1.4-alpha)
 
 Windows x64 ZIP：
 
-[GPT-Auto-Resume-v0.1.3-alpha-win-x64.zip](https://github.com/myappleknight/gpt-auto-resume/releases/download/v0.1.3-alpha/GPT-Auto-Resume-v0.1.3-alpha-win-x64.zip)
+[GPT-Auto-Resume-v0.1.4-alpha-win-x64.zip](https://github.com/myappleknight/gpt-auto-resume/releases/download/v0.1.4-alpha/GPT-Auto-Resume-v0.1.4-alpha-win-x64.zip)
 
 ## 給開發者
 
@@ -166,7 +166,7 @@ dotnet publish src/GPTAutoResume/GPTAutoResume.csproj -c Release -r win-x64 --se
 
 - 收集更多真實額度中斷案例
 - 讓「最後回覆是否完成」判斷更穩
-- 等 ChatGPT Desktop 未來若提供穩定 Work ID，再支援多 Work 自動續跑
+- 等 ChatGPT Desktop 未來若提供穩定 Work ID，再支援多 Work 自動按繼續
 
 ## License
 

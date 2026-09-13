@@ -1,4 +1,4 @@
-# GPT Auto Resume
+# GPT Auto Resume | Free Auto-Continue Helper
 
 Free Windows helper. When ChatGPT / Codex stops because your usage limit is reached, this little app watches for quota recovery.
 
@@ -29,7 +29,7 @@ If everything looks safe, it sends the resume message for you.
 
 ## What It Can Do Today
 
-| Feature | v0.1.3-alpha |
+| Feature | v0.1.4-alpha |
 | --- | --- |
 | Free to use | Yes |
 | Watch the currently open ChatGPT / Codex Work | Yes |
@@ -64,7 +64,7 @@ When quota returns, the app can resume that Work
 1. Download the Windows ZIP from GitHub Releases:
 
 ```text
-GPT-Auto-Resume-v0.1.3-alpha-win-x64.zip
+GPT-Auto-Resume-v0.1.4-alpha-win-x64.zip
 ```
 
 2. Unzip it.
@@ -148,11 +148,11 @@ It does not use fixed-coordinate clicking, OCR guessing, or sidebar titles as th
 
 Latest release:
 
-[GPT Auto Resume v0.1.3-alpha](https://github.com/myappleknight/gpt-auto-resume/releases/tag/v0.1.3-alpha)
+[GPT Auto Resume v0.1.4-alpha](https://github.com/myappleknight/gpt-auto-resume/releases/tag/v0.1.4-alpha)
 
 Windows x64 ZIP:
 
-[GPT-Auto-Resume-v0.1.3-alpha-win-x64.zip](https://github.com/myappleknight/gpt-auto-resume/releases/download/v0.1.3-alpha/GPT-Auto-Resume-v0.1.3-alpha-win-x64.zip)
+[GPT-Auto-Resume-v0.1.4-alpha-win-x64.zip](https://github.com/myappleknight/gpt-auto-resume/releases/download/v0.1.4-alpha/GPT-Auto-Resume-v0.1.4-alpha-win-x64.zip)
 
 ## For Developers
 

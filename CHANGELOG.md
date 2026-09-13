@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.4-alpha - 2026-09-13
+
+Wording update for clearer public positioning.
+
+### Changed
+
+- Chinese app card title now says `自動按繼續`.
+- GitHub README title now emphasizes the tool is free and helps auto-continue.
+- Release notes now use a plain-language `免費自動按繼續小工具` title.
+
 ## 0.1.3-alpha - 2026-09-13
 
 Default behavior update for real users.
