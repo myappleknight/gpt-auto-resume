@@ -288,6 +288,14 @@ public sealed class MonitorService
             _operationCancellation.ThrowIfCancellationRequested();
             Trace("TARGET_FOUND", "PASS", now, window);
             var identity = (_reader as IConversationIdentityProvider)?.CaptureConversationIdentity(window.Handle);
+            if (identity is not null && _reader is IActiveWorkTitleProvider titleProvider)
+            {
+                var activeTitle = titleProvider.GetActiveWorkDisplayName(window.Handle);
+                if (!string.IsNullOrWhiteSpace(activeTitle))
+                {
+                    _workSelectionStore.UpsertRecent(activeTitle, identity, OperationNow);
+                }
+            }
             if (identity is not null) ObserveWork(window, identity);
         }
         if (_workNavigator is not null && _config.AutoResume && _config.ResumePolicy == ResumePolicy.AutomaticForegroundResume)
@@ -378,7 +386,7 @@ public sealed class MonitorService
 
     private AssistantCompletionEvidence PromoteTrustedLimitSurface(TargetWindow window, AssistantCompletionEvidence evidence)
     {
-        if (evidence.IsIncomplete || evidence.Footer == FooterPresence.Present || evidence.Stopped == false
+        if (evidence.IsIncomplete || evidence.Footer == FooterPresence.Present
             || string.IsNullOrWhiteSpace(evidence.AssistantReplyIdentity))
         {
             return evidence;
@@ -408,9 +416,11 @@ public sealed class MonitorService
             Trace("COMPLETION_LIMIT_SURFACE", $"TRUSTED_LIMIT_INTERRUPTION;Confidence={result.Confidence}", OperationNow, window, result.Confidence);
             return evidence with
             {
-                Stopped = evidence.Stopped ?? true,
+                Stopped = true,
                 Footer = FooterPresence.Absent,
-                Reason = "TRUSTED_LIMIT_SURFACE_WITHOUT_COMPLETED_FOOTER"
+                Reason = evidence.Stopped == false
+                    ? "TRUSTED_LIMIT_SURFACE_OVERRIDES_STALE_RUNNING_CONTROL"
+                    : "TRUSTED_LIMIT_SURFACE_WITHOUT_COMPLETED_FOOTER"
             };
         }
 

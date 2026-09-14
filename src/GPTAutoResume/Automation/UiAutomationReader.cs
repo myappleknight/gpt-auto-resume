@@ -4,7 +4,7 @@ using Rect = System.Windows.Rect;
 
 namespace GPTAutoResume.Automation;
 
-public sealed class UiAutomationReader : IUiAutomationReader, IConversationIdentityProvider, IAccountQuotaReader
+public sealed class UiAutomationReader : IUiAutomationReader, IConversationIdentityProvider, IActiveWorkTitleProvider, IAccountQuotaReader
 {
     public string ReadAccountQuotaSurfaceText(nint hwnd)
     {
@@ -184,7 +184,7 @@ public sealed class UiAutomationReader : IUiAutomationReader, IConversationIdent
                 return null;
             }
 
-            var boundedElements = EnumerateBounded(root, maxDepth: 18, maxElements: 2_500).ToList();
+            var boundedElements = EnumerateBounded(root, maxDepth: 28, maxElements: 4_000).ToList();
             var document = boundedElements
                 .Where(element => IsControlType(element, ControlType.Document))
                 .FirstOrDefault();
@@ -194,7 +194,7 @@ public sealed class UiAutomationReader : IUiAutomationReader, IConversationIdent
                 .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)) ?? "";
             var composer = FindChatInputForDiscovery(hwnd);
             var activeTitle = GetActiveWorkDisplayName(hwnd);
-            var titleForIdentity = string.IsNullOrWhiteSpace(activeTitle) ? document?.Current.Name : activeTitle;
+            var titleForIdentity = activeTitle;
             var identity = new ConversationTargetIdentity(
                 SurfaceType: document?.Current.ControlType.ProgrammaticName ?? root.Current.ControlType.ProgrammaticName,
                 ConversationTitleHash: ConversationTargetIdentity.Hash(titleForIdentity),
@@ -471,7 +471,7 @@ public sealed class UiAutomationReader : IUiAutomationReader, IConversationIdent
             var inActiveHeader = relativeLeft >= 250
                 && relativeLeft <= rootBounds.Width - 160
                 && relativeTop >= 24
-                && relativeTop <= 130
+                && relativeTop <= 92
                 && bounds.Height is >= 14 and <= 42;
             if (!inActiveHeader)
             {
@@ -505,7 +505,8 @@ public sealed class UiAutomationReader : IUiAutomationReader, IConversationIdent
 
     private static bool IsLikelyActiveWorkTitle(string name)
     {
-        if (string.IsNullOrWhiteSpace(name) || name.Length < 4)
+        if (string.IsNullOrWhiteSpace(name) || name.Length < 4 || name.Length > 120
+            || name.Contains('\r') || name.Contains('\n'))
         {
             return false;
         }

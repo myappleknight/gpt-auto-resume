@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.IO;
+using System.Reflection;
 
 namespace GPTAutoResume.Core;
 
@@ -15,11 +16,27 @@ public sealed class PatternCatalog
             path = Path.Combine(AppContext.BaseDirectory, "usage_limit_patterns.json");
         }
 
-        var json = File.ReadAllText(path);
+        var json = File.Exists(path) ? File.ReadAllText(path) : ReadEmbeddedDefault();
         return JsonSerializer.Deserialize<PatternCatalog>(json, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         }) ?? throw new InvalidOperationException("Pattern catalog could not be loaded.");
+    }
+
+    private static string ReadEmbeddedDefault()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var resourceName = assembly.GetManifestResourceNames()
+            .FirstOrDefault(name => name.EndsWith("usage_limit_patterns.json", StringComparison.OrdinalIgnoreCase));
+        if (resourceName is null)
+        {
+            throw new FileNotFoundException("usage_limit_patterns.json could not be found next to the app or as an embedded resource.");
+        }
+
+        using var stream = assembly.GetManifestResourceStream(resourceName)
+            ?? throw new FileNotFoundException("usage_limit_patterns.json embedded resource could not be opened.");
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 }
 

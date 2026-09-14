@@ -28,10 +28,23 @@ jobs:
           Copy-Item LICENSE publish/win-x64/LICENSE
       - name: Package
         run: Compress-Archive -Path publish/win-x64/* -DestinationPath GPT-Auto-Resume-${{ github.ref_name }}-win-x64.zip
+      - name: Pick release notes
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag.TrimStart("v")
+          $path = "docs/release-notes-$tag.md"
+          if (-not (Test-Path $path)) {
+            $path = "docs/release-notes-$version.md"
+          }
+          if (-not (Test-Path $path)) {
+            $path = "docs/release-notes-v0.1.0.md"
+          }
+          "RELEASE_NOTES_PATH=$path" >> $env:GITHUB_ENV
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           prerelease: ${{ contains(github.ref_name, '-') }}
-          name: GPT Auto Resume ${{ github.ref_name }}
+          name: 免費幫 ChatGPT / Codex 自動按繼續 ${{ github.ref_name }}
           files: GPT-Auto-Resume-${{ github.ref_name }}-win-x64.zip
-          body_path: docs/release-notes-v0.1.0.md
+          body_path: ${{ env.RELEASE_NOTES_PATH }}

@@ -89,6 +89,72 @@ public sealed class MonitorServiceTests
     }
 
     [Fact]
+    public void TrustedLimitSurfaceCanOverrideStaleRunningControlAfterTwoConfirmations()
+    {
+        var target = new TargetWindow(10, 100, "ChatGPT", "ChatGPT");
+        var identity = Identity("work-a");
+        var sender = new FakeSender();
+        var completion = new MutableCompletion
+        {
+            Evidence = new("reply-a", false, FooterPresence.Unknown, "RUNNING")
+        };
+        var service = new MonitorService(
+            new AppConfig { AutoResume = true, ResumeDelaySeconds = 0,
+                ResumePolicy = ResumePolicy.AutomaticForegroundResume, RequireWorkSelection = true },
+            new FakeScanner([target]),
+            new FakeReader([]) { ConversationIdentity = identity },
+            sender,
+            new InMemoryEventStore(),
+            new NullPossibleLimitDiagnosticStore(),
+            new FakeWorkSelectionStore([identity]),
+            TestCatalog(),
+            new RetryTimeParser(),
+            accountQuotaProvider: new MutableAccountQuota
+            { Snapshot = new(100, _now.AddHours(5), 72, _now.AddDays(6), _now) },
+            workCompletionProvider: completion,
+            limitSurfaceProvider: new FakeLimitSurfaceProvider([
+                Candidate("You're out of Codex and Work usage. Reset usage or wait for usage to reset.", LimitSurfaceKind.Banner, depth: 30)
+            ]));
+
+        service.Tick(_now);
+        Assert.Equal(0, sender.SendCount);
+        service.Tick(_now.AddSeconds(10));
+
+        Assert.Equal(1, sender.SendCount);
+    }
+
+    [Fact]
+    public void ActiveTitleRefreshTransfersUniqueExistingPermissionBeforeCompletionCheck()
+    {
+        var target = new TargetWindow(10, 100, "ChatGPT", "ChatGPT");
+        var oldIdentity = Identity("old-volatile-title");
+        var refreshedIdentity = Identity("stable-header-title");
+        var selections = new FakeWorkSelectionStore([oldIdentity]) { Title = "升級 Facebook Token 前台工具" };
+        var sender = new FakeSender();
+        var service = new MonitorService(
+            new AppConfig { AutoResume = true, ResumeDelaySeconds = 0,
+                ResumePolicy = ResumePolicy.AutomaticForegroundResume, RequireWorkSelection = true },
+            new FakeScanner([target]),
+            new FakeReader([]) { ConversationIdentity = refreshedIdentity, ActiveTitle = "升級 Facebook Token 前台工具" },
+            sender,
+            new InMemoryEventStore(),
+            new NullPossibleLimitDiagnosticStore(),
+            selections,
+            TestCatalog(),
+            new RetryTimeParser(),
+            accountQuotaProvider: new MutableAccountQuota
+            { Snapshot = new(100, _now.AddHours(5), 72, _now.AddDays(6), _now) },
+            workCompletionProvider: new MutableCompletion
+            { Evidence = new("reply-a", true, FooterPresence.Absent, "INCOMPLETE") });
+
+        service.Tick(_now);
+        service.Tick(_now.AddSeconds(10));
+
+        Assert.True(selections.IsAutoResumeEnabled(refreshedIdentity));
+        Assert.Equal(1, sender.SendCount);
+    }
+
+    [Fact]
     public void ConversationBodyLimitSurfaceCannotQualifyUnknownFooter()
     {
         var target = new TargetWindow(10, 100, "ChatGPT", "ChatGPT");
@@ -1221,10 +1287,11 @@ public sealed class MonitorServiceTests
         public bool IsStillValid(TargetWindow target) => Targets.Any(t => t == target);
     }
 
-    private sealed class FakeReader(Dictionary<nint, string> textByHandle, bool accountQuotaPanel = false) : IUiAutomationReader, IConversationIdentityProvider, IAccountQuotaReader
+    private sealed class FakeReader(Dictionary<nint, string> textByHandle, bool accountQuotaPanel = false) : IUiAutomationReader, IConversationIdentityProvider, IActiveWorkTitleProvider, IAccountQuotaReader
     {
         public int TextReads { get; private set; }
         public ConversationTargetIdentity? ConversationIdentity { get; set; }
+        public string ActiveTitle { get; set; } = "";
         public Dictionary<nint, ConversationTargetIdentity> IdentityByHandle { get; set; } = [];
 
         public string ReadVisibleText(nint hwnd, out bool hasWarningRole)
@@ -1241,6 +1308,7 @@ public sealed class MonitorServiceTests
         public string DescribeElement(AutomationElement? element) => "";
         public ConversationTargetIdentity? CaptureConversationIdentity(nint hwnd) => IdentityByHandle.GetValueOrDefault(hwnd) ?? ConversationIdentity;
         public bool IsConversationStillActive(nint hwnd, ConversationTargetIdentity identity) => CaptureConversationIdentity(hwnd) == identity;
+        public string GetActiveWorkDisplayName(nint hwnd) => ActiveTitle;
     }
 
     private sealed class FakeSender : IResumeSender
@@ -1283,18 +1351,29 @@ public sealed class MonitorServiceTests
         IReadOnlyList<ConversationTargetIdentity> enabledIdentities,
         IReadOnlyList<ConversationTargetIdentity>? staleIdentities = null) : IWorkSelectionStore
     {
+        public string Title { get; init; } = "Fake Work";
         private readonly HashSet<string> _enabled = enabledIdentities.Select(JsonWorkSelectionStore.BuildHash).ToHashSet(StringComparer.Ordinal);
         private readonly HashSet<string> _stale = (staleIdentities ?? []).Select(JsonWorkSelectionStore.BuildHash).ToHashSet(StringComparer.Ordinal);
 
         public IReadOnlyList<WorkSelectionRecord> Load() =>
-            enabledIdentities.Select(identity => new WorkSelectionRecord(
-                JsonWorkSelectionStore.BuildHash(identity),
-                "Fake Work",
-                true,
+            _enabled.Concat(_stale).Distinct(StringComparer.Ordinal).Select(hash => new WorkSelectionRecord(
+                hash,
+                Title,
+                _enabled.Contains(hash),
                 DateTimeOffset.Now,
-                IsStale: _stale.Contains(JsonWorkSelectionStore.BuildHash(identity)))).ToList();
+                IsStale: _stale.Contains(hash))).ToList();
         public void Save(IReadOnlyList<WorkSelectionRecord> records) { }
-        public void UpsertRecent(string displayTitle, ConversationTargetIdentity identity, DateTimeOffset seenAt) { }
+        public void UpsertRecent(string displayTitle, ConversationTargetIdentity identity, DateTimeOffset seenAt)
+        {
+            var hash = JsonWorkSelectionStore.BuildHash(identity);
+            if (_enabled.Count == 1 && !_enabled.Contains(hash)
+                && string.Equals(displayTitle, Title, StringComparison.Ordinal))
+            {
+                foreach (var existing in _enabled) _stale.Add(existing);
+                _enabled.Clear();
+                _enabled.Add(hash);
+            }
+        }
         public void RenameDisplayName(string conversationIdentityHash, string displayTitle) { }
         public void SetEnabled(string conversationIdentityHash, bool enabled)
         {

@@ -100,7 +100,20 @@ public sealed class JsonWorkSelectionStore : IWorkSelectionStore
         }
         else
         {
-            records.Add(new WorkSelectionRecord(hash, title, AutoResumeEnabled: false, seenAt));
+            var inheritedPermission = ShouldInheritPermissionByUniqueTitle(records, title);
+            if (inheritedPermission)
+            {
+                for (var i = 0; i < records.Count; i++)
+                {
+                    if (string.Equals(records[i].DisplayTitle.Trim(), title, StringComparison.Ordinal)
+                        && records[i].AutoResumeEnabled)
+                    {
+                        records[i] = records[i] with { AutoResumeEnabled = false, IsStale = true };
+                    }
+                }
+            }
+
+            records.Add(new WorkSelectionRecord(hash, title, AutoResumeEnabled: inheritedPermission, seenAt));
         }
 
         Save(records);
@@ -169,6 +182,16 @@ public sealed class JsonWorkSelectionStore : IWorkSelectionStore
         records.GroupBy(record => record.ConversationIdentityHash, StringComparer.Ordinal)
             .Select(group => group.OrderByDescending(record => record.LastSeenAt).First())
             .ToList();
+
+    private static bool ShouldInheritPermissionByUniqueTitle(IReadOnlyList<WorkSelectionRecord> records, string title)
+    {
+        var exactTitleMatches = records
+            .Where(record => !record.IsStale
+                && string.Equals(record.DisplayTitle.Trim(), title, StringComparison.Ordinal))
+            .ToArray();
+        return exactTitleMatches.Count(record => record.AutoResumeEnabled) == 1
+            && exactTitleMatches.Count(record => !record.AutoResumeEnabled) == 0;
+    }
 }
 
 public sealed class AllowAllWorkSelectionStore : IWorkSelectionStore

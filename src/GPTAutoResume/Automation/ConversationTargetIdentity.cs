@@ -36,3 +36,8 @@ public interface IConversationIdentityProvider
     ConversationTargetIdentity? CaptureConversationIdentity(nint hwnd);
     bool IsConversationStillActive(nint hwnd, ConversationTargetIdentity identity);
 }
+
+public interface IActiveWorkTitleProvider
+{
+    string GetActiveWorkDisplayName(nint hwnd);
+}

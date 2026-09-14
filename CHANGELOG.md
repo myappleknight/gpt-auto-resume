@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.5-alpha - 2026-09-14
+
+Real-world recovery fix for the red `Needs attention` state.
+
+### Fixed
+
+- The app no longer falls back to whole-page ChatGPT document text as the active Work title. This prevents old conversation text from creating the wrong permission identity.
+- A uniquely allowed Work title can safely transfer permission to the refreshed active identity after ChatGPT changes its exposed UIA details.
+- A trusted visible usage-limit surface can override a stale `Stop` composer control, so an interrupted Work can resume after quota returns instead of staying red forever.
+- Portable diagnostics no longer crash when `usage_limit_patterns.json` is missing next to the exe; the pattern catalog is also embedded.
+
+### Validation
+
+- Tests: 225 passed / 0 failed.
+
 ## 0.1.4-alpha - 2026-09-13
 
 Wording update for clearer public positioning.
