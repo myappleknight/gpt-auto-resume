@@ -223,6 +223,24 @@ public sealed class MonitorServiceTests
         Assert.Equal(3, h.Completion.ReadCount);
     }
 
+    [Fact]
+    public void SubmittedResumeWaitingForAssistantDoesNotBecomeNeedsAttention()
+    {
+        var h = CompletionService();
+
+        h.Service.Tick(_now);
+        h.Service.Tick(_now.AddSeconds(10));
+        Assert.Equal(1, h.Sender.SendCount);
+        Assert.Equal(AppState.Verifying, h.Service.State);
+
+        h.Completion.Evidence = AssistantCompletionEvidence.Unknown("NO_LAST_ASSISTANT_AFTER_USER");
+        h.Service.Tick(_now.AddSeconds(31));
+
+        Assert.Equal(1, h.Sender.SendCount);
+        Assert.Equal(AppState.Verifying, h.Service.State);
+        Assert.DoesNotContain("cannot be verified", h.Service.ResumeStatusText, StringComparison.OrdinalIgnoreCase);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

@@ -27,7 +27,7 @@ GPT Auto Resume 會幫你看：
 
 ## 它現在能做什麼
 
-| 功能 | v0.1.5-alpha |
+| 功能 | v0.1.6-alpha |
 | --- | --- |
 | 免費使用 | 是 |
 | 監控目前開著的 ChatGPT / Codex Work | 可以 |
@@ -62,7 +62,7 @@ v0.1 只處理「目前 ChatGPT / Codex 視窗裡開著的那一個 Work」。
 1. 到 GitHub Release 下載：
 
 ```text
-GPT-Auto-Resume-v0.1.5-alpha-win-x64.zip
+GPT-Auto-Resume-v0.1.6-alpha-win-x64.zip
 ```
 
 2. 解壓縮。
@@ -146,11 +146,11 @@ GPT Auto Resume 在你的電腦本機執行。
 
 最新版：
 
-[GPT Auto Resume v0.1.5-alpha](https://github.com/myappleknight/gpt-auto-resume/releases/tag/v0.1.5-alpha)
+[GPT Auto Resume v0.1.6-alpha](https://github.com/myappleknight/gpt-auto-resume/releases/tag/v0.1.6-alpha)
 
 Windows x64 ZIP：
 
-[GPT-Auto-Resume-v0.1.5-alpha-win-x64.zip](https://github.com/myappleknight/gpt-auto-resume/releases/download/v0.1.5-alpha/GPT-Auto-Resume-v0.1.5-alpha-win-x64.zip)
+[GPT-Auto-Resume-v0.1.6-alpha-win-x64.zip](https://github.com/myappleknight/gpt-auto-resume/releases/download/v0.1.6-alpha/GPT-Auto-Resume-v0.1.6-alpha-win-x64.zip)
 
 ## 給開發者
 
@@ -171,3 +171,4 @@ dotnet publish src/GPTAutoResume/GPTAutoResume.csproj -c Release -r win-x64 --se
 ## License
 
 MIT License。請見 [LICENSE](LICENSE)。
+

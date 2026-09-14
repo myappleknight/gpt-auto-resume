@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.6-alpha - 2026-09-14
+
+Follow-up real-world fix for auto-continue after quota is already available.
+
+### Fixed
+
+- Checking/allowing the current Work while quota is already available now immediately starts auto-continue checks instead of waiting for a slow background cycle.
+- After the app types and submits the resume message, `NO_LAST_ASSISTANT_AFTER_USER` is treated as a normal post-submit waiting state, not a red `Needs attention` error.
+- The app keeps showing verification/waiting while ChatGPT/Codex starts responding after `請繼續`.
+
+### Validation
+
+- Tests: 227 passed / 0 failed.
+
 ## 0.1.5-alpha - 2026-09-14
 
 Real-world recovery fix for the red `Needs attention` state.

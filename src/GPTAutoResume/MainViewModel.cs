@@ -165,7 +165,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
     public string UsageLimit => _monitor.UsageLimitText;
     public string RetryAt => _previewRetryAt ?? _monitor.RetryAt?.ToString("HH:mm") ?? "";
     public string RetryAtInline => string.IsNullOrWhiteSpace(RetryAt) ? "" : string.Format(T("EstimatedResumeAt"), RetryAt);
-    public string Version => "v0.1.5-alpha";
+    public string Version => "v0.1.6-alpha";
     public string Tagline => T("Tagline");
     public string StudioPresents => T("StudioPresents");
     public string HeroTitle => T("HeroTitle");
@@ -600,11 +600,36 @@ public sealed class MainViewModel : INotifyPropertyChanged, IDisposable
             RecentWorkSelections.Add(new WorkSelectionViewModel(record with
             {
                 DisplayTitle = DisplayWorkTitle(record.DisplayTitle)
-            }, _workSelectionStore));
+            }, _workSelectionStore, OnWorkSelectionChanged));
         }
 
         OnPropertyChanged(nameof(RecentWorkEmptyVisibility));
         OnPropertyChanged(nameof(ShowAllRecentWorkVisibility));
+    }
+
+    private void OnWorkSelectionChanged(bool enabled)
+    {
+        ResumeStatus = enabled ? "Checking this Work now." : "Auto continue disabled for this Work.";
+        OnPropertyChanged(nameof(ResumeStatus));
+        if (enabled)
+        {
+            _ = RecheckAfterWorkSelectionAsync();
+        }
+    }
+
+    private async Task RecheckAfterWorkSelectionAsync()
+    {
+        await TickMonitorAsync();
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(6));
+        }
+        catch
+        {
+            return;
+        }
+
+        await TickMonitorAsync();
     }
 
     private static IReadOnlyList<DiscoveredWork> DiscoverVisibleWork(CancellationToken cancellationToken)
@@ -976,6 +1001,7 @@ public sealed record ResumePolicyOption(ResumePolicy Value, string DisplayName);
 public sealed class WorkSelectionViewModel : INotifyPropertyChanged
 {
     private readonly IWorkSelectionStore _store;
+    private readonly Action<bool>? _selectionChanged;
     private bool _isSelected;
     private string _displayTitle;
 
@@ -1010,14 +1036,16 @@ public sealed class WorkSelectionViewModel : INotifyPropertyChanged
             _isSelected = value;
             _store.SetEnabled(ConversationIdentityHash, value);
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
+            _selectionChanged?.Invoke(value);
         }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public WorkSelectionViewModel(WorkSelectionRecord record, IWorkSelectionStore store)
+    public WorkSelectionViewModel(WorkSelectionRecord record, IWorkSelectionStore store, Action<bool>? selectionChanged = null)
     {
         _store = store;
+        _selectionChanged = selectionChanged;
         ConversationIdentityHash = record.ConversationIdentityHash;
         _displayTitle = record.DisplayTitle;
         _isSelected = record.AutoResumeEnabled;

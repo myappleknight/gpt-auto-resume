@@ -30,6 +30,7 @@ public sealed class MonitorService
     private DateTimeOffset? _verifyUntil;
     private readonly IProductionEventLog _trace;
     private string _completionValidationReason = "";
+    private static readonly TimeSpan PostSubmitVerificationGrace = TimeSpan.FromMinutes(5);
 
     public AppState State { get; private set; } = AppState.Monitoring;
     public DateTimeOffset? RetryAt => _currentEvent?.RetryAt;
@@ -323,6 +324,14 @@ public sealed class MonitorService
         _incompleteWorkGate.RetainOnly(observedKeys);
         if (eligible is not { } candidate)
         {
+            if (IsPostSubmitVerificationWindow(OperationNow, completionBlock))
+            {
+                State = AppState.Verifying;
+                ResumeStatusText = "Resume was submitted. Waiting for ChatGPT/Codex to start responding.";
+                Trace("POST_SUBMIT_VERIFICATION", completionBlock is null ? "WAITING_FOR_RESPONSE" : $"WAITING:{completionBlock}", now, Target);
+                return;
+            }
+
             _currentEvent = null;
             _completionValidatedAt = null;
             _completionValidationReason = "";
@@ -371,6 +380,18 @@ public sealed class MonitorService
         if (_config.ResumePolicy == ResumePolicy.AutomaticForegroundResume
             && now >= _currentEvent.RetryAt.AddSeconds(_config.ResumeDelaySeconds))
             AttemptResume(now, completionAlreadyValidatedThisTick: true);
+    }
+
+    private bool IsPostSubmitVerificationWindow(DateTimeOffset now, string? completionBlock)
+    {
+        if (_currentEvent?.ResumeSentAt is not { } sentAt || now < sentAt || now - sentAt > PostSubmitVerificationGrace)
+        {
+            return false;
+        }
+
+        return string.IsNullOrWhiteSpace(completionBlock)
+            || string.Equals(completionBlock, "NO_LAST_ASSISTANT_AFTER_USER", StringComparison.Ordinal)
+            || string.Equals(completionBlock, "FOOTER_ABSENCE_UNVERIFIED", StringComparison.Ordinal);
     }
 
     private AssistantCompletionEvidence ReadCompletion(TargetWindow window, ConversationTargetIdentity identity)
