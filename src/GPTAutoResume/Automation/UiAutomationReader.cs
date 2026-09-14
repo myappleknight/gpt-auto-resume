@@ -194,6 +194,11 @@ public sealed class UiAutomationReader : IUiAutomationReader, IConversationIdent
                 .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)) ?? "";
             var composer = FindChatInputForDiscovery(hwnd);
             var activeTitle = GetActiveWorkDisplayName(hwnd);
+            if (string.IsNullOrWhiteSpace(activeTitle) && string.IsNullOrWhiteSpace(selected))
+            {
+                return null;
+            }
+
             var titleForIdentity = activeTitle;
             var identity = new ConversationTargetIdentity(
                 SurfaceType: document?.Current.ControlType.ProgrammaticName ?? root.Current.ControlType.ProgrammaticName,
